@@ -6,6 +6,8 @@
 #include "heartRate.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 #define TTP223_PIN 4
 #define ONE_WIRE_BUS 5
@@ -15,6 +17,13 @@ MAX30105 particleSensor;
 MPU6050 mpu;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define mpuTrigger 1500
 
@@ -78,6 +87,23 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
 
+   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+  delay(100);
+display.clearDisplay();
+
+display.clearDisplay();
+display.setTextSize(1);                      // normal size
+display.setTextColor(SSD1306_WHITE);         // set text color
+display.setCursor(10, 10);                     // top-left corner
+display.println("Starting");
+display.display();
+display.clearDisplay();
+delay(2000);
+display.display();
+
   pinMode(TTP223_PIN, INPUT);
 
   mpu.initialize();
@@ -99,13 +125,13 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.print("Connecting to receiver AP");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nConnected to Receiver AP!");
-  Serial.print("Transmitter IP: ");
-  Serial.println(WiFi.localIP());
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
+  // Serial.println("\nConnected to Receiver AP!");
+  // Serial.print("Transmitter IP: ");
+  // Serial.println(WiFi.localIP());
 
   xTaskCreatePinnedToCore(heartRateTask, "HeartRateTask", 4096, NULL, 2, NULL, 0);
 }
@@ -149,10 +175,57 @@ void loop() {
     Serial.printf("Send: BPM=%.1f Avg=%d Ap=%d Temp=%.2f\n",
                   myData.bpm, myData.avgBpm,myData.ap, myData.tempC);
 
+    if(WiFi.status() == WL_CONNECTED){
     udp.beginPacket(receiverIP, udpPort);
     udp.write((uint8_t *)&myData, sizeof(myData));
     udp.endPacket();
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.print("BPM: ");
+  display.print(myData.bpm, 1);
+
+  display.setCursor(0, 10);
+  display.print("Avg BPM: ");
+  display.print(myData.avgBpm);
+
+  display.setCursor(0, 20);
+  display.print("body Temp: ");
+  display.print(myData.tempC, 2);
+  display.print(" C");
+
+
+  display.display();
+  }
+
+
+
+  if (WiFi.status() != WL_CONNECTED) {
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.print("BPM: ");
+  display.print(myData.bpm, 1);
+
+  display.setCursor(0, 10);
+  display.print("Avg BPM: ");
+  display.print(myData.avgBpm);
+
+
+  display.setCursor(0, 20);
+  display.print("Temp: ");
+  display.print(myData.tempC, 2);
+  display.print(" C");
+
+  display.display();
+    }
+
   }
 
   delay(50);
 }
+
