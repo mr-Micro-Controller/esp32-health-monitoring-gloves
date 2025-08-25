@@ -4,7 +4,7 @@
 #define BLYNK_AUTH_TOKEN "cF2B0mYWjzFIktYcQGq3qiz963"
 
 char ssid[] = "Deepak Verma";     
-char pass[] = "11223344";
+char pass[] = "1122334";
 
 #include <Adafruit_NeoPixel.h>
 #include <WiFi.h>
@@ -35,13 +35,11 @@ bool prevAbove1 = false, prevAbove2 = false, prevAbove3 = false, prevAbove4 = fa
 
 // Reduced struct (no IR, no AZ)
 typedef struct struct_message {
-  int16_t ax;
-  int16_t ay;
+  uint8_t ap;
   float bpm;
   int avgBpm;
   float tempC;
 } struct_message;
-
 struct_message myData;
 
 float prevTemp = -100;     
@@ -57,6 +55,7 @@ void updateLeds() {
     else strip.setPixelColor(2, strip.Color(255, 0, 0));
     if (digitalRead(ap4)) strip.setPixelColor(3, strip.Color(0, 255, 0)); 
     else strip.setPixelColor(3, strip.Color(255, 0, 0));
+    strip.setBrightness(50);
     strip.show();
 }
 
@@ -90,8 +89,8 @@ void loop() {
     int packetSize = udp.parsePacket();
     if (packetSize == sizeof(myData)) {
         udp.read((uint8_t*)&myData, sizeof(myData));
-        Serial.printf("UDP Received: BPM=%.1f Avg=%d AX=%d AY=%d Temp=%.2f\n",
-                      myData.bpm, myData.avgBpm, myData.ax, myData.ay, myData.tempC);
+        Serial.printf("UDP Received: BPM=%.1f Avg=%d Ap=%d Temp=%.2f\n",
+                      myData.bpm, myData.avgBpm, myData.ap, myData.tempC);
     }
 
     if (WiFi.status() == WL_CONNECTED) {
@@ -108,19 +107,19 @@ void loop() {
         }
     }
 
-    bool above1 = (myData.ax > trigger);
+    bool above1 = (myData.ap == 1);
     if (above1 && !prevAbove1) { ledState1 = !ledState1; digitalWrite(ap1, ledState1); Blynk.virtualWrite(V4, ledState1); }
     prevAbove1 = above1;
 
-    bool above2 = (myData.ax < -trigger);
+    bool above2 = (myData.ap == 2);
     if (above2 && !prevAbove2) { ledState2 = !ledState2; digitalWrite(ap2, ledState2); Blynk.virtualWrite(V5, ledState2); }
     prevAbove2 = above2;
 
-    bool above3 = (myData.ay > trigger);
+    bool above3 = (myData.ap == 4);
     if (above3 && !prevAbove3) { ledState3 = !ledState3; digitalWrite(ap3, ledState3); Blynk.virtualWrite(V6, ledState3); }
     prevAbove3 = above3;
 
-    bool above4 = (myData.ay < -trigger);
+    bool above4 = (myData.ap == 8);
     if (above4 && !prevAbove4) { ledState4 = !ledState4; digitalWrite(ap4, ledState4); Blynk.virtualWrite(V7, ledState4); }
     prevAbove4 = above4;
 
