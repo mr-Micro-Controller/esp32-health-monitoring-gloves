@@ -9,13 +9,14 @@
 
 #define TTP223_PIN 4
 #define ONE_WIRE_BUS 5
+#define trigger 3000
 
 MAX30105 particleSensor;
 MPU6050 mpu;
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
-#define mpuTrigger 1000
+#define mpuTrigger 1500
 
 volatile float beatsPerMinute = 0.0;
 volatile int beatAvg = 0;
@@ -30,8 +31,7 @@ const unsigned long tempInterval = 10000;
 
 // Reduced struct (removed IR and AZ)
 typedef struct struct_message {
-  int16_t ax;
-  int16_t ay;
+  uint8_t ap;
   float bpm;
   int avgBpm;
   float tempC;
@@ -124,9 +124,12 @@ void loop() {
   bool touchActive = (digitalRead(TTP223_PIN) == HIGH);
   bool motionTrigger = (ax < -mpuTrigger || ax > mpuTrigger || ay < -mpuTrigger || ay > mpuTrigger);
   if (touchActive && motionTrigger) {
-    myData.ax = ax;
-    myData.ay = ay;
+    (ax>trigger) ? myData.ap|=(1<<0):myData.ap&=~(1<<0);
+    (ax<-trigger) ? myData.ap|=(1<<1):myData.ap&=~(1<<1);
+    (ay>trigger) ? myData.ap|=(1<<2):myData.ap&=~(1<<2);
+    (ay<-trigger) ? myData.ap|=(1<<3):myData.ap&=~(1<<3);
     sendData = true;
+
   }
 
   if (currentMillis - lastTempSend >= tempInterval) {
@@ -143,8 +146,8 @@ void loop() {
   }
 
   if (sendData) {
-    Serial.printf("Send: BPM=%.1f Avg=%d AX=%d AY=%d Temp=%.2f\n",
-                  myData.bpm, myData.avgBpm, myData.ax, myData.ay, myData.tempC);
+    Serial.printf("Send: BPM=%.1f Avg=%d Ap=%d Temp=%.2f\n",
+                  myData.bpm, myData.avgBpm,myData.ap, myData.tempC);
 
     udp.beginPacket(receiverIP, udpPort);
     udp.write((uint8_t *)&myData, sizeof(myData));
