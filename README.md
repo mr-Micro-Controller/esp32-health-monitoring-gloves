@@ -30,7 +30,7 @@
 ![Circuit Diagram](assets/glove_rx.png)
 
 ## Transmitter side circuit digram
-![Tx circuit digram](assets/glove_tx.jpg)
+![Tx circuit digram](assets/gloves_tx.jpg)
 
 
 ## ⚙️ Working Principle  
