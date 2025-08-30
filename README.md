@@ -26,10 +26,11 @@
 ---
 
 ## Receiver side circuit digram
+- ** Note : The transistor shown in the circuit digram are general purpose NPN transistor with pinout in ECB (Emitter-Collector-Base) layout and not in CBE layout
 ![Circuit Diagram](assets/glove_rx.png)
 
 ## Transmitter side circuit digram
-![Tx circuit digram](assets/glove\ tx.jpg)
+![Tx circuit digram](assets/glove_tx.jpg)
 
 
 ## ⚙️ Working Principle  
