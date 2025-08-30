@@ -1,4 +1,4 @@
-# IoT-Based Health Monitoring & Gesture-Controlled Relay System  
+# IoT-Based Health Monitoring & Gesture-Controlled Automation System  
 
 ## 📦 Hardware Requirements  
 - **ESP32 (2 units)** → One as Transmitter (TX), one as Receiver (RX)  
@@ -10,7 +10,7 @@
 - **Adafruit SSD1306 OLED Display (128x32)** → Live display of vitals on TX side  
 - **NeoPixel RGB LED Strip (4 LEDs)** → Visual indication of relay states  
 - **Power Supply** (5V regulated, USB or adapter)  
-- Jumper wires, breadboard, etc.  
+- Gloves for mounting the components, pcb for connecting the circuits, etc.  
 
 ## 🖥️ Software Requirements  
 - **Arduino IDE / PlatformIO** with ESP32 board support  
